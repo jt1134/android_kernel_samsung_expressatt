@@ -995,6 +995,25 @@ static int __init ext_display_setup(char *param)
 }
 early_param("ext_display", ext_display_setup);
 
+/* Exclude the last 4 kB to preserve the kexec hardboot page. */
+#ifdef CONFIG_ANDROID_RAM_CONSOLE
+#define RAM_CONSOLE_START 0xfff00000
+#define RAM_CONSOLE_SIZE (SZ_1M-SZ_4K)
+
+static struct resource ram_console_resource[] = {
+	{
+		.flags = IORESOURCE_MEM,
+	},
+};
+
+static struct platform_device ram_console_device = {
+	.name = "ram_console",
+	.id = -1,
+	.num_resources = ARRAY_SIZE(ram_console_resource),
+	.resource = ram_console_resource,
+};
+#endif
+
 static void __init msm8960_reserve(void)
 {
 	msm8960_set_display_params(prim_panel_name, ext_panel_name);
@@ -1011,6 +1030,13 @@ static void __init msm8960_reserve(void)
 		fmem_pdata.phys = reserve_memory_for_fmem(fmem_pdata.size, fmem_pdata.align);
 #endif
 	}
+
+#ifdef CONFIG_ANDROID_RAM_CONSOLE
+	if (memblock_remove(RAM_CONSOLE_START, RAM_CONSOLE_SIZE) == 0) {
+		ram_console_resource[0].start = RAM_CONSOLE_START;
+		ram_console_resource[0].end = RAM_CONSOLE_START+RAM_CONSOLE_SIZE-1;
+	}
+#endif
 }
 
 static int msm8960_change_memory_power(u64 start, u64 size,
@@ -4890,6 +4916,9 @@ static struct platform_device *express_devices[] __initdata = {
 #ifdef CONFIG_VIBETONZ
 	&vibetonz_device,
 #endif /* CONFIG_VIBETONZ */
+#ifdef CONFIG_ANDROID_RAM_CONSOLE
+	&ram_console_device,
+#endif
 };
 
 static void __init msm8960_i2c_init(void)
