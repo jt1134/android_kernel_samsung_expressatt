@@ -165,6 +165,10 @@
 #include <linux/sec_jack.h>
 #endif
 
+#ifdef CONFIG_KEXEC_HARDBOOT
+#include <asm/kexec.h>
+#endif
+
 static struct platform_device msm_fm_platform_init = {
 	.name = "iris_fm",
 	.id   = -1,
@@ -1036,6 +1040,10 @@ static void __init msm8960_reserve(void)
 		ram_console_resource[0].start = RAM_CONSOLE_START;
 		ram_console_resource[0].end = RAM_CONSOLE_START+RAM_CONSOLE_SIZE-1;
 	}
+#endif
+
+#ifdef CONFIG_KEXEC_HARDBOOT
+	memblock_remove(KEXEC_HB_PAGE_ADDR, SZ_4K);
 #endif
 }
 
