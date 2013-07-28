@@ -159,6 +159,7 @@ static int mipi_dsi_on(struct platform_device *pdev)
 	u32 hbp, hfp, vbp, vfp, hspw, vspw, width, height;
 	u32 ystride, bpp, data;
 	u32 dummy_xres, dummy_yres;
+	u32 tmp;
 	int target_type = 0;
 
 	mfd = platform_get_drvdata(pdev);
@@ -207,6 +208,7 @@ static int mipi_dsi_on(struct platform_device *pdev)
 	height = mfd->panel_info.yres;
 
 	mipi  = &mfd->panel_info.mipi;
+
 	if (mfd->panel_info.type == MIPI_VIDEO_PANEL) {
 		dummy_xres = mfd->panel_info.lcdc.xres_pad;
 		dummy_yres = mfd->panel_info.lcdc.yres_pad;
@@ -263,6 +265,22 @@ static int mipi_dsi_on(struct platform_device *pdev)
 	}
 
 	mipi_dsi_host_init(mipi);
+
+#if defined(CONFIG_FB_MSM_MIPI_MAGNA_OLED_VIDEO_WVGA_PT)
+    /* LP11 */
+    tmp = MIPI_INP(MIPI_DSI_BASE + 0xA8);
+    tmp &= ~(1<<28);
+    MIPI_OUTP(MIPI_DSI_BASE + 0xA8, tmp);
+    wmb();
+    /* LP11 */
+
+    usleep(5000);
+    if (mipi_dsi_pdata && mipi_dsi_pdata->active_reset)
+            mipi_dsi_pdata->active_reset(); /* high */
+    usleep(10000);
+
+#endif
+
 #if defined(CONFIG_FB_MSM_MIPI_PANEL_POWERON_LP11)
 	/*
 	 * For TC358764 D2L IC, one of the requirement for power on
@@ -289,10 +307,7 @@ static int mipi_dsi_on(struct platform_device *pdev)
 	}
 #endif /* CONFIG_FB_MSM_MIPI_PANEL_POWERON_LP11 */
 
-
 	if (mipi->force_clk_lane_hs) {
-		u32 tmp;
-
 		tmp = MIPI_INP(MIPI_DSI_BASE + 0xA8);
 		tmp |= (1<<28);
 		MIPI_OUTP(MIPI_DSI_BASE + 0xA8, tmp);
