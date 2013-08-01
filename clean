@@ -1,0 +1,4 @@
+#!/bin/bash
+cd `dirname $0`
+make clean mrproper
+rm -f ramdisk/*.img zip/{boot.img,*.zip,system/lib/modules/*}
