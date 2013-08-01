@@ -27,6 +27,26 @@ MKBOOTIMG() {
 	ls -lh boot.img
 }
 
+ZIP() {
+	# kernel
+	LOG "Installing kernel..."
+	TRY mv boot.img zip/
+
+	# modules
+	LOG "Installing modules..."
+	for i in $(find . -name *.ko); do
+		TRY "$CC"strip --strip-unneeded $i
+		TRY cp $i zip/system/lib/modules
+	done
+
+	# zip
+	LOG "Creating update.zip..."
+	TRY cd zip
+	TRY zip -rq kernel_update-$DATE.zip . 
+	TRY mv -f kernel_update-$DATE.zip $HOME
+	LOG "Kernel located at $HOME/kernel_update-$DATE.zip"
+}
+
 #
 # no CC?!? GTFO!
 #
@@ -78,6 +98,7 @@ if [ ! -e arch/arm/boot/zImage ]; then
 	DIE "Sumthin done fucked up. I suggest you fix it."
 else
 	MKBOOTIMG
+	ZIP
 fi
 
 #
