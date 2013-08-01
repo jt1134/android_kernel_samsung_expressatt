@@ -115,7 +115,6 @@ usr/gen_init_cpio
 usr/initramfs_data.cpio
 
 boot.img
-ramdisk/*.img
 zip/boot.img
 zip/*.zip
 kernel_update*.zip
